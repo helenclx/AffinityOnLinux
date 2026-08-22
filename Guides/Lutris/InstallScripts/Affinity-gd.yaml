@@ -56,9 +56,13 @@ script:
         src: Windows.winmd
         dst: "$GAMEDIR/drive_c/windows/system32/winmetadata/Windows.winmd"
     - move:
-        description: Placing Wintypes_Shim.dll.so helper file (if provided)...
+        description: Placing wintypes.dll helper file (if provided)...
         src: Wintypes_Shim.dll.so
-        dst: "$GAMEDIR/drive_c/Program Files/Affinity/Affinity/Wintypes_Shim.dll.so"
+        dst: "$GAMEDIR/drive_c/Program Files/Affinity/Affinity/wintypes.dll"
+    - execute:
+        description: Registering wintypes as a native DLL override...
+        command: wine reg add "HKEY_CURRENT_USER\\Software\\Wine\\DllOverrides" /v wintypes /d native /f
+        prefix: $GAMEDIR
 
   files:
     - setup: https://downloads.affinity.studio/Affinity%20x64.exe

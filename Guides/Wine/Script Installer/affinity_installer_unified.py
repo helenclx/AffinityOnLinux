@@ -413,24 +413,32 @@ install_affinity_app() {
     
     # Copy helper files
     local affinity_dir="$WINEPREFIX/drive_c/Program Files/Affinity"
-    
-    if [ -d "$affinity_dir" ]; then
-        local app_dir=$(find "$affinity_dir" -maxdepth 1 -type d \( -name "Affinity*" -o -name "Affinity" \) | head -1)
-        
-        if [ -n "$app_dir" ] && [ -f "$WINTYPES_DLL" ]; then
+
+    if [ -d "$affinity_dir" ] && [ -f "$WINTYPES_DLL" ]; then
+        # V2 installs (Photo 2, Designer 2, Publisher 2) each get their own
+        # subdirectory here, so every match needs the shim, not just the first.
+        while IFS= read -r app_dir; do
             cp "$WINTYPES_DLL" "$app_dir/" 2>&1 | tee -a "$LOG_FILE"
             log "wintypes.dll copied to $app_dir"
-        fi
+        done < <(find "$affinity_dir" -maxdepth 1 -type d \( -name "Affinity*" -o -name "Affinity" \))
     fi
-    
+
     local winmetadata_dir="$WINEPREFIX/drive_c/windows/system32/WinMetadata"
     mkdir -p "$winmetadata_dir"
-    
+
     if [ -f "$WINDOWS_WINMD" ]; then
         cp "$WINDOWS_WINMD" "$winmetadata_dir/" 2>&1 | tee -a "$LOG_FILE"
         log "Windows.winmd copied to $winmetadata_dir"
     fi
-    
+
+    # Register the wintypes native DLL override so Wine actually loads the
+    # shim above instead of its own missing wintypes.dll (#131 root cause).
+    if [ -f "$WINTYPES_DLL" ]; then
+        WINEPREFIX="$WINEPREFIX" wine reg add "HKEY_CURRENT_USER\\Software\\Wine\\DllOverrides" \
+            /v wintypes /d native /f 2>&1 | tee -a "$LOG_FILE"
+        log "Registered wintypes native DLL override"
+    fi
+
     return 0
 }
 
@@ -1389,7 +1397,7 @@ class AffinityInstallerGUI(QMainWindow):
         
         # Credits link
         credits_label = QLabel(
-            "<b><a href='https://github.com/seapear/AffinityOnLinux/blob/main/Credits.md' style='color: #2196F3; text-decoration: none;'>Credits</a></b> - "
+            "<b><a href='https://github.com/seapear/AffinityOnLinux/wiki/Credits' style='color: #2196F3; text-decoration: none;'>Credits</a></b> - "
             "Credit to all the amazing work everyone has volunteered"
         )
         credits_label.setOpenExternalLinks(True)
