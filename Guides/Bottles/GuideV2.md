@@ -41,7 +41,7 @@ Alternately, you may want to install Bottles using the [unofficial AppImage](htt
 
 ## 5. Add Windows.winmd
 
-1. Download the [`Windows.winmd` file](https://github.com/microsoft/windows-rs/raw/refs/heads/master/crates/libs/bindgen/default/Windows.winmd).
+1. Download the [`Windows.winmd` file](https://github.com/microsoft/windows-rs/raw/refs/heads/master/crates/libs/default/Windows.winmd).
 2. Insert the `Windows.winmd` file you downloaded into `drive_c/windows/system32/winmetadata`.
 
 The Affinity app should now work inside that Bottle.
